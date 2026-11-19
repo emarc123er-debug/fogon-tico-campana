@@ -1,4 +1,4 @@
-"""Punto de entrada: una sola app en Railway que sirve
+"""Punto de entrada: una sola app (desplegada en Render) que sirve
   - la landing de temporada  ->  /
   - la API del formulario    ->  /api/...
   - el servidor MCP          ->  MCP_PATH (por defecto /mcp)

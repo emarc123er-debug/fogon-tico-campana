@@ -50,8 +50,8 @@ Zernio es el segundo conector de Claude. Claude usa `datos_para_publicacion` y p
 
 | Variable | Descripción |
 |---|---|
-| `DATABASE_URL` | Postgres de Railway (`${{Postgres.DATABASE_URL}}`). Si no existe, se usa SQLite local |
-| `LANDING_URL` | URL pública de la landing, la usa el MCP en los posts |
+| `DATABASE_URL` | Postgres (Render la conecta sola). Si no existe, se usa SQLite local |
+| `LANDING_URL` | Opcional: URL pública de la landing (en Render se usa `RENDER_EXTERNAL_URL`) |
 | `MCP_PATH` | Ruta del servidor MCP (por defecto `mcp`) |
 
 ## Correr en local
@@ -65,12 +65,16 @@ uvicorn app.main:app --reload    # http://localhost:8000  ·  MCP en /mcp
 pytest -q
 ```
 
-## Desplegar en Railway
+## Desplegar en Render
 
-1. Crear un proyecto nuevo desde este repositorio y agregarle una base **Postgres**.
-2. En el servicio, configurar las variables `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `LANDING_URL` y `MCP_PATH`.
-3. Generar un dominio público. `railway.json` ya define el comando de inicio y el chequeo `/health`.
-4. En Claude, ir a **Configuración → Conectores → Agregar conector personalizado** y pegar `https://<dominio>/<MCP_PATH>`.
+El archivo [`render.yaml`](render.yaml) (Blueprint) crea el servicio web y una base **Postgres** gratuita.
+
+1. En Render, ir a **New → Blueprint** y elegir este repositorio.
+2. Cuando lo pida, escribir el valor de `MCP_PATH`, por ejemplo `mcp-` seguido de caracteres al azar.
+3. Render conecta `DATABASE_URL` automáticamente, y el MCP toma la URL pública de `RENDER_EXTERNAL_URL`.
+4. En Claude, ir a **Configuración → Conectores → Agregar conector personalizado** y pegar `https://<servicio>.onrender.com/<MCP_PATH>`.
+
+> En el plan gratuito, el servicio se duerme tras 15 minutos sin visitas. Antes de usar el conector, conviene abrir la landing una vez para despertarlo.
 
 ## Estructura
 

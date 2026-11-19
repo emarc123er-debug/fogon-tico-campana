@@ -1,7 +1,7 @@
 """Consultas de solo lectura para el servidor MCP.
 
 Se leen solo las columnas necesarias y se agregan en Python: así funciona igual
-en SQLite (local) y Postgres (Railway), sin funciones SQL específicas de un motor.
+en SQLite (local) y Postgres (Render), sin funciones SQL específicas de un motor.
 """
 from datetime import datetime, timezone
 

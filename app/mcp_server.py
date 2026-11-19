@@ -322,7 +322,8 @@ def datos_para_publicacion(dia: str | None = None) -> dict:
             return {"error": "No hay días futuros con mesas libres; no hay nada que promocionar."}
         elegido = _mas_vacios(disponibles)[0]
 
-    landing = os.getenv("LANDING_URL", "").strip()
+    # LANDING_URL manual, o la URL pública que Render asigna automáticamente
+    landing = (os.getenv("LANDING_URL") or os.getenv("RENDER_EXTERNAL_URL") or "").strip()
     avisos = []
     if not landing:
         avisos.append("LANDING_URL no está configurada; pide la URL al dueño antes de publicar.")

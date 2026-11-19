@@ -1,0 +1,30 @@
+# Blueprint de Render: servicio web + Postgres (plan gratuito).
+# No contiene claves: la conexión a la base la inyecta Render y MCP_PATH se pide al crear el Blueprint.
+databases:
+  - name: fogon-db
+    plan: free
+    databaseName: fogon
+    user: fogon
+
+services:
+  - type: web
+    name: fogon-tico
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # Si SEED_DEMO=1 y la base está vacía, carga reservas ficticias de demostración
+    startCommand: >-
+      if [ "$SEED_DEMO" = "1" ]; then python -m scripts.seed_demo || true; fi;
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fogon-db
+          property: connectionString
+      - key: SEED_DEMO
+        value: "1"
+      - key: MCP_PATH
+        sync: false   # se escribe a mano en el panel de Render (ruta difícil de adivinar)

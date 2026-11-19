@@ -1,6 +1,6 @@
 """Capa de datos compartida por la landing y el servidor MCP.
 
-- En Railway usa Postgres a través de la variable de entorno DATABASE_URL.
+- En Render usa Postgres a través de la variable de entorno DATABASE_URL.
 - En local, si DATABASE_URL no existe, usa un archivo SQLite (leads.db).
 """
 import os
@@ -12,7 +12,7 @@ from sqlalchemy import (Column, Date, DateTime, Integer, MetaData, String, Table
 from . import config
 
 _url = os.getenv("DATABASE_URL", "sqlite:///leads.db")
-# Railway entrega "postgres://..."; SQLAlchemy necesita "postgresql+psycopg://..."
+# Algunos proveedores entregan "postgres://..."; SQLAlchemy necesita "postgresql+psycopg://..."
 if _url.startswith("postgres://"):
     _url = _url.replace("postgres://", "postgresql+psycopg://", 1)
 elif _url.startswith("postgresql://"):
