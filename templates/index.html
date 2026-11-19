@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es-CR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ oferta.nombre }} a {{ precio_oferta }} | {{ negocio }}</title>
+  <meta name="description" content="{{ oferta.nombre }} en {{ negocio }}, {{ ciudad }}: tamales, gallos de chicharrón, ensalada rusa, queque y rompope por {{ precio_oferta }} la pareja (antes {{ precio_ancla }}). Solo {{ mesas_por_dia }} mesas por día. Reservas hasta el {{ fecha_limite_texto }}.">
+  <meta name="theme-color" content="#a3201c">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CR">
+  <meta property="og:site_name" content="{{ negocio }}">
+  <meta property="og:title" content="{{ oferta.nombre }}: {{ precio_oferta }} por pareja">
+  <meta property="og:description" content="Comida típica navideña en {{ ciudad }}. Antes {{ precio_ancla }}, ahora {{ precio_oferta }}. Cupos limitados: {{ mesas_por_dia }} mesas por día.">
+  <meta property="og:url" content="{{ request.url }}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <a class="saltar" href="#reservar">Ir al formulario de reserva</a>
+
+  <!-- Encabezado con franja de carreta -->
+  <header class="cabecera">
+    <div class="contenedor cabecera__fila">
+      <span class="marca">{{ negocio }}</span>
+      <span class="cabecera__lugar">{{ ciudad }}</span>
+    </div>
+  </header>
+  <div class="franja" aria-hidden="true"></div>
+
+  <main>
+    <!-- HERO: una sola oferta, precio ancla y cupos reales -->
+    <section class="hero" aria-labelledby="titulo-oferta">
+      <div class="contenedor hero__grid">
+        <div class="hero__texto">
+          <p class="etiqueta">Temporada navideña · Solo fines de semana de diciembre</p>
+          <h1 id="titulo-oferta">{{ oferta.nombre }}</h1>
+          <p class="hero__bajada">Sabor de la casa de la abuela, hecho a fogón de leña. Venga a compartir la tradición tica con quien más quiere.</p>
+
+          <div class="precio" aria-label="Precio: antes {{ precio_ancla }}, ahora {{ precio_oferta }} por pareja">
+            <span class="precio__ancla"><s>{{ precio_ancla }}</s></span>
+            <span class="precio__oferta">{{ precio_oferta }}</span>
+            <span class="precio__unidad">por pareja</span>
+            <span class="precio__ahorro">Ahorre {{ ahorro_pct }}%</span>
+          </div>
+
+          <div class="urgencia">
+            <p class="urgencia__cupos">
+              {% if cerrado %}
+                <strong>Reservas cerradas</strong>
+              {% else %}
+                Quedan <strong id="total-libres" class="contador">{{ total_libres }}</strong>
+                <span id="total-libres-texto">{{ "mesa" if total_libres == 1 else "mesas" }}</span>
+                para toda la campaña
+              {% endif %}
+            </p>
+            <p class="urgencia__plazo">
+              Reservas hasta el <strong>{{ fecha_limite_texto }}</strong>
+              {% if not cerrado %}
+                <span class="urgencia__dias">
+                  {% if dias_restantes == 0 %}(¡hoy es el último día!){% elif dias_restantes == 1 %}(falta 1 día){% else %}(faltan {{ dias_restantes }} días){% endif %}
+                </span>
+              {% endif %}
+            </p>
+          </div>
+
+          {% if not cerrado %}
+          <a class="boton boton--grande" href="#reservar">Apartar mi mesa</a>
+          {% endif %}
+        </div>
+
+        <!-- Qué incluye -->
+        <aside class="incluye" aria-labelledby="titulo-incluye">
+          <h2 id="titulo-incluye">La cena incluye</h2>
+          <ul class="incluye__lista">
+            {% for item in oferta.incluye %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+          <p class="incluye__nota">Precio por pareja. Su mesa puede ser de {{ personas_min }} a {{ personas_max }} personas: cada pareja disfruta la cena completa.</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Disponibilidad por día (datos reales de la base) -->
+    <section class="seccion" aria-labelledby="titulo-dias">
+      <div class="contenedor">
+        <h2 id="titulo-dias" class="seccion__titulo">Mesas disponibles por día</h2>
+        <p class="seccion__intro">Tenemos solo {{ mesas_por_dia }} mesas por noche. Cuando se acaban, se acaban.</p>
+        <ul id="grid-dias" class="dias" aria-live="polite">
+          {% for c in cupos %}
+          {% set pct = (c.libres / c.mesas_totales * 100) | round | int %}
+          <li class="dia{% if c.pasado %} dia--pasado{% elif c.libres == 0 %} dia--agotado{% elif c.libres <= 2 %} dia--ultimas{% endif %}" data-dia="{{ c.dia }}">
+            <span class="dia__fecha">{{ c.dia_texto }}</span>
+            <span class="dia__cifra"><strong>{{ c.libres }}</strong> / {{ c.mesas_totales }} libres</span>
+            <span class="barra" aria-hidden="true"><span class="barra__relleno" style="width: {{ pct }}%"></span></span>
+            {% if c.pasado %}
+              <span class="insignia insignia--gris">Ya pasó</span>
+            {% elif c.libres == 0 %}
+              <span class="insignia insignia--agotado">Agotado</span>
+            {% elif c.libres <= 2 %}
+              <span class="insignia insignia--ultimas">¡Últimas!</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    <!-- Formulario de reserva -->
+    <section id="reservar" class="seccion seccion--reserva" aria-labelledby="titulo-reserva">
+      <div class="contenedor contenedor--angosto">
+        <div class="tarjeta">
+          <h2 id="titulo-reserva" class="seccion__titulo">Aparte su mesa</h2>
+
+          {% if cerrado %}
+            <div class="cerrado" role="status">
+              <p><strong>Las reservas de esta campaña ya cerraron.</strong></p>
+              <p>¡Muchas gracias por el cariño! Síganos para enterarse de la próxima temporada.</p>
+            </div>
+          {% else %}
+            <p class="tarjeta__intro">Sin pago por adelantado: paga al llegar. Le confirmamos por WhatsApp.</p>
+            <form id="form-reserva" class="formulario" novalidate>
+              <div class="campo">
+                <label for="nombre">Nombre completo</label>
+                <input id="nombre" name="nombre" type="text" required minlength="2" maxlength="80" autocomplete="name" placeholder="Ej.: María Rojas">
+              </div>
+
+              <div class="campo">
+                <label for="whatsapp">WhatsApp</label>
+                <div class="campo__prefijo">
+                  <span aria-hidden="true">+506</span>
+                  <input id="whatsapp" name="whatsapp" type="tel" required inputmode="numeric" maxlength="14" autocomplete="tel-national" placeholder="8888 8888" aria-describedby="ayuda-whatsapp">
+                </div>
+                <small id="ayuda-whatsapp" class="campo__ayuda">Celular de 8 dígitos. Solo lo usamos para confirmar su reserva.</small>
+              </div>
+
+              <div class="campo-doble">
+                <div class="campo">
+                  <label for="personas">Personas</label>
+                  <select id="personas" name="personas" required>
+                    {% for n in range(personas_min, personas_max + 1) %}
+                    <option value="{{ n }}"{% if n == personas_min %} selected{% endif %}>{{ n }} personas</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="campo">
+                  <label for="dia">Día</label>
+                  <select id="dia" name="dia" required>
+                    <option value="">Elija un día…</option>
+                    {% for c in dias_disponibles %}
+                    <option value="{{ c.dia }}">{{ c.dia_texto }} ({{ c.libres }} {{ "mesa libre" if c.libres == 1 else "mesas libres" }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Honeypot anti-bots: oculto para personas -->
+              <div class="trampa" aria-hidden="true">
+                <label for="empresa">Empresa</label>
+                <input id="empresa" name="empresa" type="text" tabindex="-1" autocomplete="off">
+              </div>
+
+              <button id="btn-reservar" class="boton boton--grande boton--ancho" type="submit">Reservar mi mesa</button>
+              <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Preguntas frecuentes -->
+    <section class="seccion" aria-labelledby="titulo-faq">
+      <div class="contenedor contenedor--angosto">
+        <h2 id="titulo-faq" class="seccion__titulo">Preguntas frecuentes</h2>
+        <div class="faq">
+          <details>
+            <summary>¿Tengo que pagar por adelantado?</summary>
+            <p>No. Usted paga al llegar, en efectivo, tarjeta o SINPE Móvil. La reserva solo aparta la mesa.</p>
+          </details>
+          <details>
+            <summary>¿Qué significa un cupo?</summary>
+            <p>Cada cupo es una mesa completa para {{ personas_min }} a {{ personas_max }} personas. Tenemos {{ mesas_por_dia }} mesas por noche.</p>
+          </details>
+          <details>
+            <summary>¿Dónde están ubicados?</summary>
+            <p>En el centro de Heredia, a 100 metros del parque (ubicación ficticia, es un proyecto académico).</p>
+          </details>
+          <details>
+            <summary>¿Tienen opciones sin cerdo?</summary>
+            <p>Sí, bajo pedido: tamales de pollo y gallos de papa con chorizo de pollo. Indíquenoslo por WhatsApp cuando le confirmemos.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="franja" aria-hidden="true"></div>
+  <footer class="pie">
+    <div class="contenedor">
+      <p><strong>{{ negocio }}</strong> · {{ ciudad }}</p>
+      <p class="pie__aviso">Negocio y cifras ficticios — proyecto académico.</p>
+    </div>
+  </footer>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Secretos: NUNCA al repositorio
+.env
+.env.*
+!.env.example
+
+# Base de datos local
+*.db
+*.sqlite3
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
